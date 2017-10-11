@@ -35,4 +35,28 @@ public class MyLayoutManager extends RecyclerView.LayoutManager{
         }
 
     }
+
+    @Override
+    public boolean canScrollVertically() {
+        return true;
+    }
+
+    int verticalScaollOffset = 0;
+    int totalHeight = 0;
+    @Override
+    public int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state) {
+        int traval = dy;
+        if (verticalScaollOffset + dy < 0) {
+            traval = -verticalScaollOffset;
+        }else if (verticalScaollOffset + dy > totalHeight - getVerticalSpace()) {
+            traval = totalHeight - getVerticalSpace() - verticalScaollOffset;
+        }
+        verticalScaollOffset += traval;
+        offsetChildrenVertical(-traval);
+        return traval;
+    }
+
+    private int getVerticalSpace() {
+        return getHeight() - getPaddingBottom() - getPaddingTop();
+    }
 }
