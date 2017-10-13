@@ -6,6 +6,8 @@ import android.util.SparseArray;
 import android.view.ViewGroup;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by aliouswang on 2017/10/13.
@@ -30,6 +32,22 @@ public class ARecyclerView extends ViewGroup{
 
     }
 
+    public final class Recycler {
+
+        static final int DEFAULT_CACHE_SIZE = 2;
+
+        final ArrayList<ViewHolder> mAttachedScrap = new ArrayList<>();
+        ArrayList<ViewHolder> mChangedScrap = null;
+
+        final ArrayList<ViewHolder> mCachedViews = new ArrayList<>();
+
+        private final List<ViewHolder> mUnmodifiableAttachedScrap =
+                Collections.unmodifiableList(mAttachedScrap);
+
+        private int mRequestedCacheMax = DEFAULT_CACHE_SIZE;
+        int mViewCacheMax = DEFAULT_CACHE_SIZE;
+    }
+
     public static class RecycledViewPool {
         private static final int DEFAULT_MAX_SCRAP = 5;
 
@@ -42,7 +60,12 @@ public class ARecyclerView extends ViewGroup{
         SparseArray<ScrapData> mScrap = new SparseArray<>();
         private int mAttachCount = 0;
 
-
+        public void clear() {
+            for (int i = 0; i < mScrap.size(); i++) {
+                ScrapData data = mScrap.valueAt(i);
+                data.mScrapHeap.clear();
+            }
+        }
     }
 
     public abstract static class ViewHolder {
