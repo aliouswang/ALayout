@@ -2,7 +2,9 @@ package com.aliouswang.alayout;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.SparseArray;
+import android.view.View;
 import android.view.ViewGroup;
 
 import java.util.ArrayList;
@@ -14,6 +16,10 @@ import java.util.List;
  */
 
 public class ARecyclerView extends ViewGroup{
+
+    static final String TAG = "RecyclerView";
+
+    static final boolean DEBUG = false;
 
     public ARecyclerView(Context context) {
         super(context);
@@ -46,6 +52,44 @@ public class ARecyclerView extends ViewGroup{
 
         private int mRequestedCacheMax = DEFAULT_CACHE_SIZE;
         int mViewCacheMax = DEFAULT_CACHE_SIZE;
+
+        RecycledViewPool mRecycledViewPool;
+
+        private ViewCacheExtension mViewCacheExtention;
+
+        RecyclerListener mRecyclerListener;
+
+        public void clear() {
+            mAttachedScrap.clear();
+
+        }
+
+        void recycleAndClearCachedViews() {
+            final int count = mCachedViews.size();
+
+        }
+
+        void recycleCachedViewAt(int cachedViewIndex) {
+            if (DEBUG) {
+                Log.d(TAG, "Recycling cached view at index " + cachedViewIndex);
+            }
+            ViewHolder viewHolder = mCachedViews.get(cachedViewIndex);
+            if (DEBUG) {
+                Log.d(TAG, "CachedViewHolder to be recycled : " + cachedViewIndex);
+            }
+            addViewHolderToRecyclerViewPool(viewHolder, true);
+            mCachedViews.remove(cachedViewIndex);
+        }
+
+        void addViewHolderToRecyclerViewPool(ViewHolder viewHolder, boolean dispatchRecycled) {
+
+        }
+
+        void dispatchViewRecycled(ViewHolder viewHolder) {
+            if (mRecyclerListener != null) {
+                mRecyclerListener.onViewRecycled(viewHolder);
+            }
+        }
     }
 
     public static class RecycledViewPool {
@@ -70,6 +114,16 @@ public class ARecyclerView extends ViewGroup{
 
     public abstract static class ViewHolder {
 
+    }
+
+    public abstract static class ViewCacheExtension {
+
+        public abstract View getViewForPositionAndType(Recycler recycler, int position, int type);
+
+    }
+
+    public interface RecyclerListener {
+        void onViewRecycled(ViewHolder viewHolder);
     }
 
 }
