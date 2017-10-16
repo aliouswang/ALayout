@@ -2,12 +2,14 @@ package com.aliouswang.alayout;
 
 import android.content.Context;
 import android.database.Observable;
+import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -21,6 +23,10 @@ public class ARecyclerView extends ViewGroup{
     static final String TAG = "RecyclerView";
 
     static final boolean DEBUG = false;
+
+    public static final int NO_POSITION = -1;
+    public static final long NO_ID = -1;
+    public static final int INVALID_TYPE = -1;
 
     public ARecyclerView(Context context) {
         super(context);
@@ -114,7 +120,60 @@ public class ARecyclerView extends ViewGroup{
     }
 
     public abstract static class ViewHolder {
+        public final View itemView;
+        WeakReference<ARecyclerView> mNestedRecyclerView;
+        int mPosition = NO_POSITION;
+        int mOldPosition = NO_POSITION;
+        long mItemId = NO_ID;
+        int mItemViewType = INVALID_TYPE;
+        int mPreLayoutPosition = NO_POSITION;
 
+        ViewHolder mShadowedHolder = null;
+        ViewHolder mShadowingHolder = null;
+
+        static final int FLAG_BOUND = 1 << 0;
+        static final int FLAG_UPDATE = 1 << 1;
+        static final int FLAG_INVALID = 1 << 2;
+        static final int FLAG_REMOVED = 1 << 3;
+        static final int FLAG_NOT_RECYCLABLE = 1 << 4;
+        static final int FLAG_RETURNED_FROM_SCRAP = 1 << 5;
+        static final int FLAG_IGNORE = 1 << 7;
+        static final int FLAG_TMP_DETACHED = 1 << 8;
+        static final int FLAG_ADAPTER_POSITION_UNKNOWN = 1 << 9;
+        static final int FLAG_ADAPTER_FULLUPDATE = 1 << 10;
+        static final int FLAG_MOVED = 1 << 11;
+        static final int FLAG_APPEARED_IN_PRE_LAYOUT = 1 << 12;
+        static final int PENDING_ACCESSIBILITY_STATE_NOT_SET = -1;
+        static final int FLAG_BOUNCED_FROM_HIDDEN_LIST = 1 << 13;
+
+        private int mFlags;
+        private static final List<Object> FULLUPDATE_PAYLOADS = Collections.EMPTY_LIST;
+
+        List<Object> mPayloads = null;
+        List<Object> mUnmodifiedPayloads = null;
+
+        private int mIsRecyclableCount = 0;
+
+        private Recycler mScrapContainer = null;
+        private boolean mInChangeScrap = false;
+
+        private int mWasImportantForAccessibilityBeforeHidden =
+                ViewCompat.IMPORTANT_FOR_ACCESSIBILITY_AUTO;
+
+        int mPendingAccessibilityState = PENDING_ACCESSIBILITY_STATE_NOT_SET;
+
+        Recycler mOwnerRecyclerView;
+
+        public ViewHolder(View itemView) {
+            if (itemView == null) {
+                throw new IllegalArgumentException("itemView may not be null");
+            }
+            this.itemView = itemView;
+        }
+
+        void addFlags(int flags) {
+            this.mFlags |= flags;
+        }
     }
 
     public abstract static class ViewCacheExtension {
@@ -161,8 +220,6 @@ public class ARecyclerView extends ViewGroup{
                 mObservers.get(i).onItemRangeMoved(positionStart, itemCount);
             }
         }
-
-
     }
 
 
@@ -191,5 +248,6 @@ public class ARecyclerView extends ViewGroup{
 
         }
     }
+
 
 }
